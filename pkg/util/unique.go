@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// copied from github.com/containerd/containerd/rootfs/apply.go
+// UniquePart copied from github.com/containerd/containerd/rootfs/apply.go
 func UniquePart() string {
 	t := time.Now()
 	var b [3]byte

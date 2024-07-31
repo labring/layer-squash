@@ -1,6 +1,6 @@
-module github.com/lingdie/squash
+module github.com/labring/layer-squash
 
-go 1.22.5
+go 1.22
 
 require (
 	github.com/containerd/containerd v1.7.16

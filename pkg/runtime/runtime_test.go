@@ -1,12 +1,13 @@
-package squash_test
+package runtime_test
 
 import (
 	"context"
 	"fmt"
+	"github.com/labring/layer-squash/pkg/options"
 	"testing"
 
 	"github.com/containerd/nerdctl/pkg/clientutil"
-	"github.com/lingdie/squash/pkg/squash"
+	"github.com/labring/layer-squash/pkg/runtime"
 )
 
 func TestRuntime_Squash(t *testing.T) {
@@ -16,12 +17,12 @@ func TestRuntime_Squash(t *testing.T) {
 		return
 	}
 	defer cancel()
-	r, err := squash.NewRuntime(client, "default")
+	r, err := runtime.NewRuntime(client, "default")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	opt1 := squash.Option{
+	opt1 := options.Option{
 		SourceImageRef:   "docker.io/lingdie/commit:dev",
 		TargetImageName:  "docker.io/lingdie/commit:dev-slim",
 		SquashLayerCount: 6,

@@ -1,4 +1,4 @@
-package squash
+package runtime
 
 import (
 	"bytes"
@@ -7,6 +7,10 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	imagesutil "github.com/labring/layer-squash/pkg/images"
+	"github.com/labring/layer-squash/pkg/options"
+	"github.com/labring/layer-squash/pkg/util"
 
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/content"
@@ -22,8 +26,6 @@ import (
 	"github.com/opencontainers/image-spec/identity"
 	"github.com/opencontainers/image-spec/specs-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-
-	"github.com/lingdie/squash/pkg/util"
 )
 
 type Runtime struct {
@@ -48,7 +50,7 @@ func NewRuntime(client *containerd.Client, namespace string) (*Runtime, error) {
 	}, nil
 }
 
-func (r *Runtime) Squash(ctx context.Context, opt Option) error {
+func (r *Runtime) Squash(ctx context.Context, opt options.Option) error {
 	ctx = namespaces.WithNamespace(ctx, r.namespace)
 	// init image
 	image, err := r.initImage(ctx, opt)
@@ -108,22 +110,22 @@ func (r *Runtime) prepareSnapshot(ctx context.Context, key string) ([]mount.Moun
 	return r.snapshotter.Prepare(ctx, key, "")
 }
 
-func (r *Runtime) initImage(ctx context.Context, opt Option) (*Image, error) {
+func (r *Runtime) initImage(ctx context.Context, opt options.Option) (*imagesutil.Image, error) {
 	containerImage, err := r.imagestore.Get(ctx, opt.SourceImageRef)
 	if err != nil {
-		return &Image{}, err
+		return &imagesutil.Image{}, err
 	}
 
 	clientImage := containerd.NewImage(r.client, containerImage)
 	manifest, _, err := imgutil.ReadManifest(ctx, clientImage)
 	if err != nil {
-		return &Image{}, err
+		return &imagesutil.Image{}, err
 	}
 	config, _, err := imgutil.ReadImageConfig(ctx, clientImage)
 	if err != nil {
-		return &Image{}, err
+		return &imagesutil.Image{}, err
 	}
-	resImage := &Image{
+	resImage := &imagesutil.Image{
 		ClientImage: clientImage,
 		Config:      config,
 		Image:       containerImage,
@@ -132,7 +134,7 @@ func (r *Runtime) initImage(ctx context.Context, opt Option) (*Image, error) {
 	return resImage, err
 }
 
-func (r *Runtime) generateSquashLayer(opt Option, image *Image) ([]ocispec.Descriptor, error) {
+func (r *Runtime) generateSquashLayer(opt options.Option, image *imagesutil.Image) ([]ocispec.Descriptor, error) {
 	// get the layer descriptors by the layer digest
 	if opt.SquashLayerDigest != "" {
 		find := false
@@ -192,7 +194,7 @@ func (r *Runtime) createDiff(ctx context.Context, snapshotName string) (ocispec.
 	}, diffID, nil
 }
 
-func (r *Runtime) generateBaseImageConfig(ctx context.Context, image *Image, remainingLayerCount int) (ocispec.Image, error) {
+func (r *Runtime) generateBaseImageConfig(ctx context.Context, image *imagesutil.Image, remainingLayerCount int) (ocispec.Image, error) {
 	// generate squash image config
 	orginalConfig, _, err := imgutil.ReadImageConfig(ctx, image.ClientImage) // aware of img.platform
 	if err != nil {
@@ -229,7 +231,7 @@ func (r *Runtime) generateBaseImageConfig(ctx context.Context, image *Image, rem
 	}, nil
 }
 
-func (r *Runtime) generateSquashImage(ctx context.Context, opt Option, baseImageConfig ocispec.Image, baseImageLayers []ocispec.Descriptor, diffLayerDesc ocispec.Descriptor, diffID digest.Digest) (*images.Image, error) {
+func (r *Runtime) generateSquashImage(ctx context.Context, opt options.Option, baseImageConfig ocispec.Image, baseImageLayers []ocispec.Descriptor, diffLayerDesc ocispec.Descriptor, diffID digest.Digest) (*images.Image, error) {
 	// add diffID and history to baseImage config
 	baseImageConfig.RootFS.DiffIDs = append(baseImageConfig.RootFS.DiffIDs, diffID)
 	cTime := time.Now()

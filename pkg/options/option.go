@@ -1,4 +1,4 @@
-package squash
+package options
 
 type Option struct {
 	SourceImageRef  string

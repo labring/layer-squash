@@ -1,4 +1,4 @@
-package squash
+package images
 
 import (
 	"github.com/containerd/containerd"
