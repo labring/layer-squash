@@ -15,7 +15,6 @@ import (
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/content"
 	"github.com/containerd/containerd/images"
-	"github.com/containerd/containerd/leases"
 	"github.com/containerd/containerd/mount"
 	"github.com/containerd/containerd/namespaces"
 	"github.com/containerd/containerd/rootfs"
@@ -63,12 +62,6 @@ func (r *Runtime) Squash(ctx context.Context, opt options.Option) error {
 		return err
 	}
 	remainingLayerCount := len(image.Manifest.Layers) - len(sLayers)
-	// Don't gc me and clean the dirty data after 1 hour!
-	ctx, done, err := r.client.WithLease(ctx, leases.WithRandomID(), leases.WithExpiration(1*time.Hour))
-	if err != nil {
-		return fmt.Errorf("failed to create lease for squash: %w", err)
-	}
-	defer done(ctx)
 	// prepare snapshot
 	var snapshotKey = util.UniquePart()
 	mount, err := r.prepareSnapshot(ctx, snapshotKey)
