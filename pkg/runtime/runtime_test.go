@@ -3,10 +3,11 @@ package runtime_test
 import (
 	"context"
 	"fmt"
-	"github.com/labring/layer-squash/pkg/options"
 	"testing"
 
-	"github.com/containerd/nerdctl/pkg/clientutil"
+	"github.com/containerd/nerdctl/v2/pkg/clientutil"
+	"github.com/labring/layer-squash/pkg/options"
+
 	"github.com/labring/layer-squash/pkg/runtime"
 )
 
