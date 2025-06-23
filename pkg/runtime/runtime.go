@@ -12,15 +12,15 @@ import (
 	"github.com/labring/layer-squash/pkg/options"
 	"github.com/labring/layer-squash/pkg/util"
 
-	"github.com/containerd/containerd"
-	"github.com/containerd/containerd/content"
-	"github.com/containerd/containerd/images"
-	"github.com/containerd/containerd/mount"
-	"github.com/containerd/containerd/namespaces"
-	"github.com/containerd/containerd/rootfs"
-	"github.com/containerd/containerd/snapshots"
+	"github.com/containerd/containerd/v2/client"
+	"github.com/containerd/containerd/v2/core/content"
+	"github.com/containerd/containerd/v2/core/images"
+	"github.com/containerd/containerd/v2/core/mount"
+	"github.com/containerd/containerd/v2/core/snapshots"
+	"github.com/containerd/containerd/v2/pkg/namespaces"
+	"github.com/containerd/containerd/v2/pkg/rootfs"
 	"github.com/containerd/errdefs"
-	"github.com/containerd/nerdctl/pkg/imgutil"
+	"github.com/containerd/nerdctl/v2/pkg/imgutil"
 	"github.com/opencontainers/go-digest"
 	"github.com/opencontainers/image-spec/identity"
 	"github.com/opencontainers/image-spec/specs-go"
@@ -28,16 +28,16 @@ import (
 )
 
 type Runtime struct {
-	client    *containerd.Client
+	client    *client.Client
 	namespace string
 
-	differ       containerd.DiffService
+	differ       client.DiffService
 	imagestore   images.Store
 	contentstore content.Store
 	snapshotter  snapshots.Snapshotter
 }
 
-func NewRuntime(client *containerd.Client, namespace string) (*Runtime, error) {
+func NewRuntime(client *client.Client, namespace string) (*Runtime, error) {
 	return &Runtime{
 		client:       client,
 		namespace:    namespace,
@@ -109,7 +109,7 @@ func (r *Runtime) initImage(ctx context.Context, opt options.Option) (*imagesuti
 		return &imagesutil.Image{}, err
 	}
 
-	clientImage := containerd.NewImage(r.client, containerImage)
+	clientImage := client.NewImage(r.client, containerImage)
 	manifest, _, err := imgutil.ReadManifest(ctx, clientImage)
 	if err != nil {
 		return &imagesutil.Image{}, err
